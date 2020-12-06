@@ -13,10 +13,10 @@ puts explorer
 
 method = 'getblockchaininfo'
 param = []
-HOST="127.0.0.1"    # 環境に合わせて変更
+HOST="127.0.0.1"    # bitcoindのHostを設定
 PORT=8332
-RPCUSER="user"          # 環境に合わせて変更
-RPCPASSWORD="password"      # 環境に合わせて変更
+RPCUSER="user"          # bitcoindのRPCUSERを設定
+RPCPASSWORD="password"      # bitcoindのRPCPASSWORDを設定
 http = Net::HTTP.new(HOST, PORT)
 request = Net::HTTP::Post.new('/')
 request.basic_auth(RPCUSER,RPCPASSWORD)
@@ -27,7 +27,7 @@ puts bitcoind_latest_block["blocks"]
 bitcoind = bitcoind_latest_block["blocks"].to_s
 puts bitcoind
 
-SLACK_URL = "https://hooks.slack.com/services/******/****************/****************"
+SLACK_URL = "https://hooks.slack.com/services/******/****************/****************"     # SlackのWebhookを設定
 
 def alert
   message = {
