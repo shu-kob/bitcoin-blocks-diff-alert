@@ -6,10 +6,14 @@ https = Net::HTTP.new(url.host, url.port)
 https.use_ssl = true
 req = Net::HTTP::Get.new(url.path)
 res = https.request(req)
-explorer_latest_block = JSON.parse(res.body)
-puts explorer_latest_block["height"]
-explorer = explorer_latest_block["height"].to_s
-puts explorer
+begin
+  explorer_latest_block = JSON.parse(res.body)
+  explorer_blockheight = explorer_latest_block["height"]
+  puts explorer_blockheight
+rescue => e
+  puts e
+  explorer_blockheight = -1
+end
 
 method = 'getblockchaininfo'
 param = []
@@ -22,18 +26,31 @@ request = Net::HTTP::Post.new('/')
 request.basic_auth(RPCUSER,RPCPASSWORD)
 request.content_type = 'application/json'
 request.body = {method: method, params: param, id: 'jsonrpc'}.to_json
-bitcoind_latest_block = JSON.parse(http.request(request).body)["result"]
-puts bitcoind_latest_block["blocks"]
-bitcoind = bitcoind_latest_block["blocks"].to_s
-puts bitcoind
+begin
+  bitcoind_latest_block = JSON.parse(http.request(request).body)["result"]
+  bitcoind_blockheight = bitcoind_latest_block["blocks"]
+  puts bitcoind_blockheight
+rescue => e
+  puts e
+  bitcoind_blockheight = -1
+end
 
 SLACK_URL = "https://hooks.slack.com/services/******/****************/****************"     # SlackのWebhookを設定
 
-def alert
-  message = {
-    text: "bitcoindとexplorerのブロック差が3以上離れています"
-  }
-
+def alert(bitcoind_blockheight, explorer_blockheight)
+  if bitcoind_blockheight == -1
+    message = {
+      text: "bitcoindから情報を取得できません",
+    }
+  elsif explorer_blockheight == -1
+    message = {
+      text: "explorerから情報を取得できません",
+    }
+  else
+    message = {
+      text: "bitcoindとexplorerのブロック差が3以上離れています bitcoind: #{bitcoind_blockheight} explorer: #{explorer_blockheight}",
+    }
+  end
   notify_to_slack(message)
 end
 
@@ -48,6 +65,6 @@ def notify_to_slack(message)
   end
 end
 
-if (explorer_latest_block["height"] - bitcoind_latest_block["blocks"]).abs >= 3
-  alert
+if bitcoind_blockheight == -1 or explorer_blockheight == -1 or (explorer_blockheight - bitcoind_blockheight).abs >= 3
+  alert(bitcoind_blockheight, explorer_blockheight)
 end
