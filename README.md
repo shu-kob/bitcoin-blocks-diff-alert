@@ -2,6 +2,8 @@
 
 bitcoindのブロック同期遅延をSlackに通知する監視アプリです。
 
+Slackのincoming-webhookを使用します。
+
 cron等で定時実行の設定をしてお使いください。
 
 HOST="127.0.0.1"    # bitcoindのHostを設定<br>
